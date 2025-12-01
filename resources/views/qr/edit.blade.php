@@ -1,16 +1,23 @@
 @extends('layout')
 
 @section('content')
-<h3>Edit Link Tujuan</h3>
+<div class="max-w-xl mx-auto">
+    <p class="text-sm text-slate-500">Perbarui tujuan</p>
+    <h1 class="text-2xl font-semibold text-slate-900 mb-6">Edit QR {{ $qr->code }}</h1>
 
-<form action="{{ route('qr.update', $qr->id) }}" method="POST">
-    @csrf
-    @method('PUT')
+    <form action="{{ route('qr.update', $qr->id) }}" method="POST" class="space-y-4">
+        @csrf
+        @method('PUT')
 
-    <label>URL Baru:</label>
-    <input type="text" name="target_url" class="form-control"
-        value="{{ $qr->target_url }}" required>
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">URL Baru</label>
+            <input type="url" name="target_url" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200" value="{{ $qr->target_url }}" required>
+        </div>
 
-    <button class="btn btn-success mt-3">Update</button>
-</form>
+        <div class="flex justify-end gap-2">
+            <a href="{{ route('qr.index') }}" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:border-slate-300">Batal</a>
+            <button class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500">Update</button>
+        </div>
+    </form>
+</div>
 @endsection
