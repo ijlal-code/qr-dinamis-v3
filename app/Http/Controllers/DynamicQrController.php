@@ -9,6 +9,11 @@ use QrCode;
 
 class DynamicQrController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     // Menampilkan daftar QR
     public function index()
     {
@@ -66,5 +71,28 @@ class DynamicQrController extends Controller
         ]);
 
         return redirect()->route('qr.show', $qr->id)->with('success', 'Link berhasil diperbarui!');
+    }
+
+    // Hapus QR
+    public function destroy($id)
+    {
+        $qr = DynamicQr::findOrFail($id);
+        $qr->delete();
+
+        return redirect()->route('qr.index')->with('success', 'QR berhasil dihapus.');
+    }
+
+    // Download QR sebagai PNG
+    public function download($id)
+    {
+        $qr = DynamicQr::findOrFail($id);
+        $png = QrCode::format('png')
+            ->size(600)
+            ->margin(2)
+            ->generate(route('qr.redirect', $qr->code));
+
+        return response($png)
+            ->header('Content-Type', 'image/png')
+            ->header('Content-Disposition', 'attachment; filename="qr-'.$qr->code.'.png"');
     }
 }
