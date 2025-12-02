@@ -16,6 +16,7 @@
     <table class="min-w-full divide-y divide-slate-200">
         <thead class="bg-slate-50">
             <tr>
+                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Nama</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Kode</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">URL Tujuan</th>
                 <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Aksi</th>
@@ -24,6 +25,7 @@
         <tbody class="divide-y divide-slate-200 bg-white">
             @foreach($qrs as $qr)
             <tr class="hover:bg-slate-50">
+                <td class="px-6 py-4 text-sm font-semibold text-slate-900">{{ $qr->name }}</td>
                 <td class="px-6 py-4 font-mono text-sm text-slate-900">{{ $qr->code }}</td>
                 <td class="px-6 py-4 text-sm text-slate-700">{{ $qr->target_url }}</td>
                 <td class="px-6 py-4 text-right">

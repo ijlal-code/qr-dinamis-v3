@@ -48,15 +48,13 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user = User::create([
+        User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
 
-        Auth::login($user);
-
-        return redirect()->route('qr.index');
+        return redirect()->route('login')->with('success', 'Registrasi berhasil, silakan masuk untuk mulai membuat QR.');
     }
 
     public function logout(Request $request): RedirectResponse
