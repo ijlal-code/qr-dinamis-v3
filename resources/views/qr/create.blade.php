@@ -8,6 +8,11 @@
     <form action="{{ route('qr.store') }}" method="POST" class="space-y-4">
         @csrf
         <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Nama QR</label>
+            <input type="text" name="name" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200" placeholder="Link promosi, brosur acara, dll" required>
+        </div>
+
+        <div>
             <label class="block text-sm font-medium text-slate-700 mb-2">URL Tujuan</label>
             <input type="url" name="target_url" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200" placeholder="https://contoh.com" required>
         </div>
