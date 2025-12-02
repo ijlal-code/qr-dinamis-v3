@@ -64,15 +64,15 @@ class DynamicQrController extends Controller
     // Update QR
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'target_url' => 'required|url'
+            'target_url' => 'sometimes|required|url'
         ]);
 
         $qr = $this->findUserQr($request->user(), $id);
         $qr->update([
-            'name'       => $request->name,
-            'target_url' => $request->target_url
+            'name'       => $validated['name'],
+            'target_url' => $validated['target_url'] ?? $qr->target_url
         ]);
 
         return redirect()->route('qr.show', $qr->id)->with('success', 'Link berhasil diperbarui!');

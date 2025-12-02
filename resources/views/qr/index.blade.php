@@ -5,6 +5,7 @@
     <div>
         <p class="text-sm text-slate-500">Kelola link dinamis</p>
         <h1 class="text-2xl font-semibold text-slate-900">Daftar QR</h1>
+        <p class="text-sm text-slate-500">Total dibuat: {{ $qrs->count() }}</p>
     </div>
     <a href="{{ route('qr.create') }}" class="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-700">
         <span class="text-lg">＋</span>
@@ -16,6 +17,7 @@
     <table class="min-w-full divide-y divide-slate-200">
         <thead class="bg-slate-50">
             <tr>
+                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">#</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Nama</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Kode</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">URL Tujuan</th>
@@ -25,6 +27,7 @@
         <tbody class="divide-y divide-slate-200 bg-white">
             @foreach($qrs as $qr)
             <tr class="hover:bg-slate-50">
+                <td class="px-6 py-4 text-sm text-slate-700">{{ $loop->iteration }}</td>
                 <td class="px-6 py-4 text-sm font-semibold text-slate-900">{{ $qr->name }}</td>
                 <td class="px-6 py-4 font-mono text-sm text-slate-900">{{ $qr->code }}</td>
                 <td class="px-6 py-4 text-sm text-slate-700">{{ $qr->target_url }}</td>
