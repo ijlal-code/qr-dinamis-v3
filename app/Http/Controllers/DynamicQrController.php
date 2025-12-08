@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DynamicQr;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use QrCode;
 
@@ -31,17 +32,24 @@ class DynamicQrController extends Controller
     // Simpan QR baru
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'target_url' => 'required|url'
+            'target_url' => 'required|url',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
         ]);
 
         $code = Str::random(8); // kode unik QR
+        $logoPath = null;
+
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('logos', 'public');
+        }
 
         $qr = $request->user()->dynamicQrs()->create([
             'code'       => $code,
-            'name'       => $request->name,
-            'target_url' => $request->target_url
+            'name'       => $validated['name'],
+            'target_url' => $validated['target_url'],
+            'logo_path'  => $logoPath,
         ]);
 
         return redirect()->route('qr.show', $qr->id);
@@ -66,13 +74,24 @@ class DynamicQrController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'target_url' => 'sometimes|required|url'
+            'target_url' => 'sometimes|required|url',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
         ]);
 
         $qr = $this->findUserQr($request->user(), $id);
+        $logoPath = $qr->logo_path;
+
+        if ($request->hasFile('logo')) {
+            if ($logoPath) {
+                Storage::disk('public')->delete($logoPath);
+            }
+            $logoPath = $request->file('logo')->store('logos', 'public');
+        }
+
         $qr->update([
             'name'       => $validated['name'],
-            'target_url' => $validated['target_url'] ?? $qr->target_url
+            'target_url' => $validated['target_url'] ?? $qr->target_url,
+            'logo_path'  => $logoPath,
         ]);
 
         return redirect()->route('qr.show', $qr->id)->with('success', 'Link berhasil diperbarui!');
@@ -82,6 +101,11 @@ class DynamicQrController extends Controller
     public function destroy(Request $request, $id)
     {
         $qr = $this->findUserQr($request->user(), $id);
+
+        if ($qr->logo_path) {
+            Storage::disk('public')->delete($qr->logo_path);
+        }
+
         $qr->delete();
 
         return redirect()->route('qr.index')->with('success', 'QR berhasil dihapus.');

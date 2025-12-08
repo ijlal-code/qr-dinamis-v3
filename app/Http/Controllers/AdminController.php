@@ -6,12 +6,11 @@ use App\Models\DynamicQr;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
-    public function index()
+    public function dashboard()
     {
         $stats = [
             'qr_count' => DynamicQr::count(),
@@ -25,46 +24,64 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('stats', 'qrs', 'users'));
     }
 
-    public function storeUser(Request $request): RedirectResponse
+    public function index(Request $request)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
-            'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', Rule::in(['user', 'admin'])],
-        ]);
+        $search = $request->input('search');
 
-        User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'is_admin' => $data['role'] === 'admin',
-        ]);
+        $users = User::query()
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->orderByDesc('is_admin')
+            ->orderBy('name')
+            ->paginate(10)
+            ->withQueryString();
 
-        return back()->with('status', 'Pengguna berhasil ditambahkan.');
+        $search = $search ?? '';
+
+        return view('admin.users.index', compact('users', 'search'));
     }
 
-    public function updateRole(User $user, Request $request): RedirectResponse
+    public function show($id)
     {
-        $request->validate([
-            'role' => ['required', Rule::in(['user', 'admin'])],
-        ]);
+        $user = User::findOrFail($id);
+        $qrs = $user->dynamicQrs()->latest()->paginate(10);
 
-        $user->update([
-            'is_admin' => $request->role === 'admin',
-        ]);
-
-        return back()->with('status', 'Role pengguna diperbarui.');
+        return view('admin.users.show', compact('user', 'qrs'));
     }
 
-    public function destroyUser(Request $request, User $user): RedirectResponse
+    public function destroyUser(Request $request, $id): RedirectResponse
     {
-        if ($user->id === $request->user()->id) {
+        if ((int) $request->user()->id === (int) $id) {
             return back()->withErrors(['user' => 'Anda tidak dapat menghapus akun Anda sendiri.']);
+        }
+
+        $user = User::findOrFail($id);
+
+        foreach ($user->dynamicQrs as $qr) {
+            if ($qr->logo_path) {
+                Storage::disk('public')->delete($qr->logo_path);
+            }
         }
 
         $user->delete();
 
-        return back()->with('status', 'Pengguna dihapus.');
+        return redirect()->route('admin.users.index')->with('status', 'Pengguna dihapus.');
+    }
+
+    public function destroyQr($id): RedirectResponse
+    {
+        $qr = DynamicQr::findOrFail($id);
+
+        if ($qr->logo_path) {
+            Storage::disk('public')->delete($qr->logo_path);
+        }
+
+        $qr->delete();
+
+        return back()->with('status', 'QR berhasil dihapus.');
     }
 }
