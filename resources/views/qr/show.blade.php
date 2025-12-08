@@ -51,8 +51,16 @@
         </div>
 
         <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col items-center w-full max-w-md mx-auto">
-            <div id="qr-svg-wrapper" class="w-full aspect-square max-w-xs" aria-hidden="true">{!! $qrSvg !!}</div>
-            <p class="mt-4 text-sm text-slate-600 text-center">Scan untuk menuju:<br><span class="font-medium text-slate-900">{{ $qrLink }}</span></p>
+            <div class="inline-block p-4 border rounded-lg shadow-md" id="qr-svg-wrapper" aria-hidden="true">{!! $qrSvg !!}</div>
+            <div class="mt-4 flex items-center justify-center gap-2">
+                <a href="{{ $qrLink }}" target="_blank" class="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700 flex items-center gap-2">
+                    Buka Link
+                </a>
+                <button type="button" id="copy-link" data-link="{{ $qrLink }}" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:border-slate-300 flex items-center gap-2">
+                    <span aria-hidden="true">📋</span>
+                    Salin Link
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -61,6 +69,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         const downloadButton = document.getElementById('download-qr-png');
         const svgWrapper = document.getElementById('qr-svg-wrapper');
+        const copyButton = document.getElementById('copy-link');
 
         if (!downloadButton || !svgWrapper) return;
 
@@ -99,6 +108,23 @@
             image.onerror = () => URL.revokeObjectURL(url);
             image.src = url;
         });
+
+        if (copyButton) {
+            const originalLabel = copyButton.innerHTML;
+
+            copyButton.addEventListener('click', () => {
+                const link = copyButton.dataset.link;
+
+                if (!link) return;
+
+                navigator.clipboard?.writeText(link)
+                    .then(() => {
+                        copyButton.innerHTML = '✔️ Disalin!';
+                        setTimeout(() => copyButton.innerHTML = originalLabel, 1500);
+                    })
+                    .catch(() => alert('Gagal menyalin link'));
+            });
+        }
     });
 </script>
 @endsection
