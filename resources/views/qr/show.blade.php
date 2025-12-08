@@ -7,7 +7,9 @@
     $qrBuilder = QrCode::format('svg')->size(320)->margin(2);
 
     if ($logoPath && file_exists($logoPath)) {
-        $qrBuilder = $qrBuilder->merge($logoPath, 0.3, true);
+        $qrBuilder = $qrBuilder
+            ->errorCorrection('H')
+            ->merge($logoPath, 0.3, true);
     }
 
     $qrSvg = $qrBuilder->generate($qrLink);
@@ -45,18 +47,20 @@
 
             <div class="flex flex-wrap gap-3">
                 <a href="{{ route('qr.edit', $qr->id) }}" class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500">Edit URL</a>
-                <button type="button" id="download-qr-png" data-filename="qr-{{ $qr->code }}.png" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:border-slate-300">Unduh PNG</button>
-                <a href="{{ $qrLink }}" target="_blank" class="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700">Buka Link</a>
             </div>
         </div>
 
         <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col items-center w-full max-w-md mx-auto">
             <div class="inline-block p-4 border rounded-lg shadow-md" id="qr-svg-wrapper" aria-hidden="true">{!! $qrSvg !!}</div>
-            <div class="mt-4 flex items-center justify-center gap-2">
-                <a href="{{ $qrLink }}" target="_blank" class="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700 flex items-center gap-2">
+            <div class="mt-4 flex items-center justify-center gap-2 w-full">
+                <a href="{{ route('qr.download', ['id' => $qr->id, 'format' => 'svg']) }}" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:border-slate-300 text-center">Download SVG</a>
+                <a href="{{ route('qr.download', ['id' => $qr->id, 'format' => 'png']) }}" class="flex-1 px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 text-center">Download PNG</a>
+            </div>
+            <div class="mt-3 flex items-center justify-center gap-2 w-full">
+                <a href="{{ $qrLink }}" target="_blank" class="flex-1 px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700 text-center">
                     Buka Link
                 </a>
-                <button type="button" id="copy-link" data-link="{{ $qrLink }}" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:border-slate-300 flex items-center gap-2">
+                <button type="button" id="copy-link" data-link="{{ $qrLink }}" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:border-slate-300 flex items-center justify-center gap-2">
                     <span aria-hidden="true">📋</span>
                     Salin Link
                 </button>
@@ -67,47 +71,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const downloadButton = document.getElementById('download-qr-png');
-        const svgWrapper = document.getElementById('qr-svg-wrapper');
         const copyButton = document.getElementById('copy-link');
-
-        if (!downloadButton || !svgWrapper) return;
-
-        downloadButton.addEventListener('click', () => {
-            const svgElement = svgWrapper.querySelector('svg');
-            if (!svgElement) return;
-
-            const serializer = new XMLSerializer();
-            const svgString = serializer.serializeToString(svgElement);
-            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(svgBlob);
-
-            const image = new Image();
-            image.onload = () => {
-                const canvas = document.createElement('canvas');
-                const width = svgElement.viewBox?.baseVal?.width || svgElement.width?.baseVal?.value || 600;
-                const height = svgElement.viewBox?.baseVal?.height || svgElement.height?.baseVal?.value || width;
-
-                canvas.width = width;
-                canvas.height = height;
-
-                const context = canvas.getContext('2d');
-                context.drawImage(image, 0, 0, width, height);
-
-                const pngUrl = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.href = pngUrl;
-                link.download = downloadButton.dataset.filename || 'qr-code.png';
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-
-                URL.revokeObjectURL(url);
-            };
-
-            image.onerror = () => URL.revokeObjectURL(url);
-            image.src = url;
-        });
 
         if (copyButton) {
             const originalLabel = copyButton.innerHTML;

@@ -111,18 +111,31 @@ class DynamicQrController extends Controller
         return redirect()->route('qr.index')->with('success', 'QR berhasil dihapus.');
     }
 
-    // Download QR sebagai SVG
+    // Download QR sebagai SVG/PNG
     public function download(Request $request, $id)
     {
         $qr = $this->findUserQr($request->user(), $id);
-        $svg = QrCode::format('svg')
-            ->size(600)
-            ->margin(2)
-            ->generate(route('qr.redirect', $qr->code));
+        $format = $request->query('format', 'svg') === 'png' ? 'png' : 'svg';
+        $logoPath = $qr->logo_path ? storage_path('app/public/' . $qr->logo_path) : null;
 
-        return response($svg)
-            ->header('Content-Type', 'image/svg+xml')
-            ->header('Content-Disposition', 'attachment; filename="qr-'.$qr->code.'.svg"');
+        $qrBuilder = QrCode::format($format)
+            ->size(600)
+            ->margin(2);
+
+        if ($logoPath && file_exists($logoPath)) {
+            $qrBuilder = $qrBuilder
+                ->errorCorrection('H')
+                ->merge($logoPath, 0.3, true);
+        }
+
+        $qrCode = $qrBuilder->generate(route('qr.redirect', $qr->code));
+
+        $mime = $format === 'png' ? 'image/png' : 'image/svg+xml';
+        $extension = $format === 'png' ? 'png' : 'svg';
+
+        return response($qrCode)
+            ->header('Content-Type', $mime)
+            ->header('Content-Disposition', 'attachment; filename="qr-' . $qr->code . '.' . $extension . '"');
     }
 
     private function findUserQr(Authenticatable $user, $id): DynamicQr
