@@ -76,10 +76,17 @@ class DynamicQrController extends Controller
             'name' => 'required|string|max:255',
             'target_url' => 'sometimes|required|url',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
+            'remove_logo' => 'nullable|boolean',
         ]);
 
         $qr = $this->findUserQr($request->user(), $id);
         $logoPath = $qr->logo_path;
+        $shouldRemoveLogo = $request->boolean('remove_logo');
+
+        if ($shouldRemoveLogo && $logoPath) {
+            Storage::disk('public')->delete($logoPath);
+            $logoPath = null;
+        }
 
         if ($request->hasFile('logo')) {
             if ($logoPath) {

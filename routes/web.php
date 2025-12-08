@@ -7,6 +7,16 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 
 Route::get('/', function() {
+    if (!auth()->check()) {
+        return redirect()->route('login');
+    }
+
+    $user = auth()->user();
+
+    if ($user && $user->is_admin) {
+        return redirect()->route('admin.dashboard');
+    }
+
     return redirect()->route('qr.index');
 });
 
