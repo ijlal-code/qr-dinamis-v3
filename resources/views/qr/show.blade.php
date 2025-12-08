@@ -5,6 +5,7 @@
     $qrLink = route('qr.redirect', $qr->code);
     $logoPath = $qr->logo_path ? storage_path('app/public/' . $qr->logo_path) : null;
     $qrBuilder = QrCode::format('svg')->size(320)->margin(2);
+    $logoUrl = $qr->logo_path ? asset('storage/' . $qr->logo_path) : null;
 
     if ($logoPath && file_exists($logoPath)) {
         $qrBuilder = $qrBuilder
@@ -51,7 +52,17 @@
         </div>
 
         <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col items-center w-full max-w-md mx-auto">
-            <div class="inline-block p-4 border rounded-lg shadow-md" id="qr-svg-wrapper" aria-hidden="true">{!! $qrSvg !!}</div>
+            <div class="relative inline-block p-4 border rounded-lg shadow-md" id="qr-svg-wrapper" aria-hidden="true">
+                {!! $qrSvg !!}
+                @if($logoUrl)
+                    <img
+                        id="logo-preview"
+                        src="{{ $logoUrl }}"
+                        alt="Logo QR"
+                        class="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full object-contain bg-white/80"
+                    >
+                @endif
+            </div>
             <div class="mt-4 flex items-center justify-center gap-2 w-full">
                 <button
                     type="button"
@@ -79,6 +90,7 @@
         const copyButton = document.getElementById('copy-link');
         const downloadButton = document.getElementById('download-png');
         const qrSvg = document.querySelector('#qr-svg-wrapper svg');
+        const logoPreview = document.getElementById('logo-preview');
 
         if (copyButton) {
             const originalLabel = copyButton.innerHTML;
@@ -97,8 +109,11 @@
             });
         }
 
-        const downloadSvgAsPng = async () => {
-            if (!qrSvg) return;
+        const drawQrToCanvas = () => new Promise((resolve) => {
+            if (!qrSvg) {
+                resolve(null);
+                return;
+            }
 
             const serializer = new XMLSerializer();
             const svgData = serializer.serializeToString(qrSvg);
@@ -114,27 +129,81 @@
                 canvas.height = image.height;
 
                 const ctx = canvas.getContext('2d');
-                if (!ctx) return;
+
+                if (!ctx) {
+                    URL.revokeObjectURL(url);
+                    resolve(null);
+                    return;
+                }
 
                 ctx.drawImage(image, 0, 0);
 
-                canvas.toBlob((blob) => {
-                    if (!blob) return;
+                const shouldDrawLogo = logoPreview && logoPreview.src;
 
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = 'qr-{{ $qr->code }}.png';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(link.href);
-                });
+                if (shouldDrawLogo) {
+                    const logoImage = new Image();
+                    logoImage.crossOrigin = 'anonymous';
+                    logoImage.onload = () => {
+                        const svgRect = qrSvg.getBoundingClientRect();
+                        const logoRect = logoPreview.getBoundingClientRect();
+                        const scaleX = canvas.width / svgRect.width;
+                        const scaleY = canvas.height / svgRect.height;
+                        const logoWidth = logoRect.width * scaleX;
+                        const logoHeight = logoRect.height * scaleY;
+                        const logoX = (canvas.width - logoWidth) / 2;
+                        const logoY = (canvas.height - logoHeight) / 2;
 
-                URL.revokeObjectURL(url);
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(
+                            logoX + logoWidth / 2,
+                            logoY + logoHeight / 2,
+                            Math.min(logoWidth, logoHeight) / 2,
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx.closePath();
+                        ctx.clip();
+                        ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
+                        ctx.restore();
+
+                        URL.revokeObjectURL(url);
+                        resolve(canvas);
+                    };
+                    logoImage.onerror = () => {
+                        URL.revokeObjectURL(url);
+                        resolve(canvas);
+                    };
+                    logoImage.src = logoPreview.src;
+                } else {
+                    URL.revokeObjectURL(url);
+                    resolve(canvas);
+                }
             };
 
-            image.onerror = () => URL.revokeObjectURL(url);
+            image.onerror = () => {
+                URL.revokeObjectURL(url);
+                resolve(null);
+            };
+
             image.src = url;
+        });
+
+        const downloadSvgAsPng = async () => {
+            const canvas = await drawQrToCanvas();
+            if (!canvas) return;
+
+            canvas.toBlob((blob) => {
+                if (!blob) return;
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'qr-{{ $qr->code }}.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            });
         };
 
         downloadButton?.addEventListener('click', downloadSvgAsPng);
