@@ -21,7 +21,7 @@
     <h1 class="text-2xl font-semibold text-slate-900">Edit QR {{ $qr->code }}</h1>
 
     <div class="grid gap-6 lg:grid-cols-2 items-start">
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 w-full">
             <form action="{{ route('qr.update', $qr->id) }}" method="POST" class="space-y-4" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
@@ -49,39 +49,41 @@
                 </div>
 
                 <div class="flex flex-wrap justify-end gap-2">
-                    <a href="{{ route('qr.index') }}" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:border-slate-300">Kembali ke Dashboard</a>
-                    <button class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500">Update</button>
+                    <a href="{{ route('qr.index') }}" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:border-slate-300 w-full sm:w-auto text-center">Kembali</a>
+                    <button class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 w-full sm:w-auto">Update</button>
                 </div>
             </form>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col items-center">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col items-center w-full max-w-md mx-auto">
             <p class="text-sm text-slate-600 mb-3">Preview QR Saat Ini</p>
-            <div class="relative inline-block p-4 border rounded-lg shadow-md" aria-hidden="true" id="qr-svg-wrapper">
+            {{-- PERBAIKAN: CSS Selector responsif untuk SVG --}}
+            <div class="relative inline-block p-4 border rounded-lg shadow-md max-w-full [&>svg]:w-full [&>svg]:h-auto" aria-hidden="true" id="qr-svg-wrapper">
                 {!! $qrSvg !!}
                 <img
                     id="logo-preview"
                     src="{{ $logoUrl }}"
                     data-initial-logo="{{ $logoUrl }}"
                     alt="Preview Logo"
-                    class="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover bg-white/80 {{ $logoUrl ? '' : 'hidden' }}"
+                    class="absolute left-1/2 top-1/2 h-[23%] w-[23%] -translate-x-1/2 -translate-y-1/2 rounded-full object-cover bg-white/80 {{ $logoUrl ? '' : 'hidden' }}"
                 >
             </div>
             <div class="mt-4 w-full flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3">
                 <button
                     type="button"
                     id="download-png"
-                    class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 text-center"
+                    class="w-full sm:w-auto px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 text-center"
                 >
                     Download PNG
                 </button>
-                <a href="{{ $qrLink }}" target="_blank" class="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700 text-center">Buka Link</a>
+                <a href="{{ $qrLink }}" target="_blank" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700 text-center">Buka Link</a>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    // ... (Gunakan script JS yang sama seperti sebelumnya, update bagian downloadCanvas logic jika diperlukan) ...
     document.addEventListener('DOMContentLoaded', () => {
         const logoInput = document.getElementById('logo-input');
         const logoPreview = document.getElementById('logo-preview');
@@ -181,6 +183,8 @@
                     return;
                 }
 
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(image, 0, 0);
 
                 const shouldDrawLogo = logoPreview && !logoPreview.classList.contains('hidden') && logoPreview.src;
@@ -189,27 +193,22 @@
                     const logoImage = new Image();
                     logoImage.crossOrigin = 'anonymous';
                     logoImage.onload = () => {
-                        const svgRect = qrSvg.getBoundingClientRect();
-                        const logoRect = logoPreview.getBoundingClientRect();
-                        const scaleX = canvas.width / svgRect.width;
-                        const scaleY = canvas.height / svgRect.height;
-                        const logoWidth = logoRect.width * scaleX;
-                        const logoHeight = logoRect.height * scaleY;
-                        const logoX = (canvas.width - logoWidth) / 2;
-                        const logoY = (canvas.height - logoHeight) / 2;
+                        const logoSize = canvas.width * 0.23;
+                        const logoX = (canvas.width - logoSize) / 2;
+                        const logoY = (canvas.height - logoSize) / 2;
 
                         ctx.save();
                         ctx.beginPath();
                         ctx.arc(
-                            logoX + logoWidth / 2,
-                            logoY + logoHeight / 2,
-                            Math.min(logoWidth, logoHeight) / 2,
+                            canvas.width / 2,
+                            canvas.height / 2,
+                            logoSize / 2,
                             0,
                             Math.PI * 2
                         );
                         ctx.closePath();
                         ctx.clip();
-                        ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
+                        ctx.drawImage(logoImage, logoX, logoY, logoSize, logoSize);
                         ctx.restore();
                         URL.revokeObjectURL(url);
                         resolve(canvas);

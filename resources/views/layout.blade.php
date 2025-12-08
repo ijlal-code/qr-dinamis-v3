@@ -16,50 +16,74 @@
             }
         }
     </script>
+    <style>
+        /* Mencegah SVG QR Code merusak layout di HP kecil */
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
-<body class="min-h-screen flex flex-col bg-slate-50 text-slate-800">
-    <div class="bg-white shadow-sm border-b border-slate-200">
-        <div class="w-full px-4 sm:px-6 py-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-start sm:gap-6">
-            <div class="flex items-center gap-2">
-                <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white font-bold">QR</div>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-800 overflow-x-hidden">
+    
+    {{-- Navbar Minimalis & Profesional --}}
+    <div class="bg-white shadow-sm border-b border-slate-200 w-full sticky top-0 z-50">
+        {{-- Menggunakan 'justify-between' agar logo di kiri dan menu di kanan --}}
+        <div class="max-w-6xl mx-auto w-full px-4 sm:px-6 py-4 flex items-center justify-between">
+            
+            {{-- Logo Brand --}}
+            <div class="flex items-center gap-2 shrink-0">
+                <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-indigo-600 to-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">QR</div>
                 <div>
-                    <p class="text-sm text-slate-500">Dashboard</p>
-                    <p class="font-semibold">QR Dinamis</p>
+                    <p class="font-bold text-slate-900 leading-tight">QR Dinamis</p>
                 </div>
             </div>
-            <div class="flex flex-wrap items-center gap-3 text-sm sm:ml-auto">
+
+            {{-- Menu Navigasi (Kanan) --}}
+            <div class="flex items-center gap-4 text-sm font-medium">
                 @auth
-                    <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700">{{ auth()->user()->name }}</span>
-                    <a href="{{ route('qr.index') }}" class="text-slate-600 hover:text-slate-900">QR</a>
+                    {{-- Nama User (Hidden di HP sangat kecil agar tidak sempit, opsional) --}}
+                    <span class="hidden sm:inline-block text-slate-500 border-r border-slate-200 pr-4">{{ auth()->user()->name }}</span>
+                    
+                    <a href="{{ route('qr.index') }}" class="text-slate-600 hover:text-indigo-600 transition-colors">
+                        Dashboard
+                    </a>
+
                     @if(auth()->user()->is_admin)
-                        <a href="{{ route('admin.dashboard') }}" class="text-slate-600 hover:text-slate-900">Admin</a>
+                        <a href="{{ route('admin.dashboard') }}" class="text-slate-600 hover:text-indigo-600 transition-colors">Admin</a>
                     @endif
+
                     <form action="{{ route('logout') }}" method="POST" class="inline">
                         @csrf
-                        <button class="px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700 w-full text-left sm:w-auto sm:text-center">Keluar</button>
+                        {{-- Tombol Logout Minimalis (Teks Merah) --}}
+                        <button class="text-rose-600 hover:text-rose-700 transition-colors">
+                            Logout
+                        </button>
                     </form>
                 @endauth
+
                 @guest
-                    <a href="{{ route('login') }}" class="px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700">Masuk</a>
-                    <a href="{{ route('register') }}" class="px-3 py-2 rounded-lg border border-slate-200 hover:border-slate-300">Daftar</a>
+                    <a href="{{ route('login') }}" class="text-slate-600 hover:text-indigo-600 font-medium">Masuk</a>
+                    <a href="{{ route('register') }}" class="px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition">Daftar</a>
                 @endguest
             </div>
         </div>
     </div>
 
+    {{-- Main Content --}}
     <main class="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
         @if(session('success'))
-            <div class="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-green-800">
+            <div class="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-green-800 text-sm">
                 {{ session('success') }}
             </div>
         @endif
         @if(session('status'))
-            <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800">
+            <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800 text-sm">
                 {{ session('status') }}
             </div>
         @endif
         @if($errors->any())
-            <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-800">
+            <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-800 text-sm">
                 <ul class="list-disc list-inside space-y-1">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -71,9 +95,10 @@
         @yield('content')
     </main>
 
-    <footer class="w-full bg-slate-900 text-slate-100 py-4 mt-auto">
-        <div class="w-full px-4 sm:px-6 text-center text-sm">
-            © {{ date('Y') }} Infinitec. All rights reserved.
+    {{-- Footer Full Width --}}
+    <footer class="w-full bg-white border-t border-slate-200 py-6 mt-auto">
+        <div class="max-w-6xl mx-auto w-full px-4 sm:px-6 text-center">
+            <p class="text-sm text-slate-500 font-medium">© {{ date('Y') }} Infinitec. All rights reserved.</p>
         </div>
     </footer>
 </body>
