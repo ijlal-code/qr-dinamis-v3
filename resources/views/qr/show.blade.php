@@ -53,8 +53,13 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col items-center w-full max-w-md mx-auto">
             <div class="inline-block p-4 border rounded-lg shadow-md" id="qr-svg-wrapper" aria-hidden="true">{!! $qrSvg !!}</div>
             <div class="mt-4 flex items-center justify-center gap-2 w-full">
-                <a href="{{ route('qr.download', ['id' => $qr->id, 'format' => 'svg']) }}" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:border-slate-300 text-center">Download SVG</a>
-                <a href="{{ route('qr.download', ['id' => $qr->id, 'format' => 'png']) }}" class="flex-1 px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 text-center">Download PNG</a>
+                <button
+                    type="button"
+                    id="download-png"
+                    class="flex-1 px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 text-center"
+                >
+                    Download PNG
+                </button>
             </div>
             <div class="mt-3 flex items-center justify-center gap-2 w-full">
                 <a href="{{ $qrLink }}" target="_blank" class="flex-1 px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700 text-center">
@@ -72,6 +77,8 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const copyButton = document.getElementById('copy-link');
+        const downloadButton = document.getElementById('download-png');
+        const qrSvg = document.querySelector('#qr-svg-wrapper svg');
 
         if (copyButton) {
             const originalLabel = copyButton.innerHTML;
@@ -89,6 +96,48 @@
                     .catch(() => alert('Gagal menyalin link'));
             });
         }
+
+        const downloadSvgAsPng = async () => {
+            if (!qrSvg) return;
+
+            const serializer = new XMLSerializer();
+            const svgData = serializer.serializeToString(qrSvg);
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            const image = new Image();
+            image.crossOrigin = 'anonymous';
+
+            image.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = image.width;
+                canvas.height = image.height;
+
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+
+                ctx.drawImage(image, 0, 0);
+
+                canvas.toBlob((blob) => {
+                    if (!blob) return;
+
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = 'qr-{{ $qr->code }}.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
+                });
+
+                URL.revokeObjectURL(url);
+            };
+
+            image.onerror = () => URL.revokeObjectURL(url);
+            image.src = url;
+        };
+
+        downloadButton?.addEventListener('click', downloadSvgAsPng);
     });
 </script>
 @endsection
