@@ -35,7 +35,7 @@ class AuthController extends Controller
         $user = Auth::user();
 
         if ($user && $user->is_admin) {
-            return redirect()->intended(route('admin.users.index'));
+            return redirect()->intended(route('admin.dashboard'));
         }
 
         return redirect()->intended(route('qr.index'));

@@ -53,17 +53,24 @@
 
         <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col items-center">
             <p class="text-sm text-slate-600 mb-3">Preview QR Saat Ini</p>
-            <div class="relative inline-block p-4 border rounded-lg shadow-md" aria-hidden="true">
+            <div class="relative inline-block p-4 border rounded-lg shadow-md" aria-hidden="true" id="qr-svg-wrapper">
                 {!! $qrSvg !!}
                 <img
                     id="logo-preview"
                     src="{{ $logoUrl }}"
+                    data-initial-logo="{{ $logoUrl }}"
                     alt="Preview Logo"
                     class="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full object-contain bg-white/80 {{ $logoUrl ? '' : 'hidden' }}"
                 >
             </div>
             <div class="mt-4 w-full flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3">
-                <a href="{{ route('qr.download', ['id' => $qr->id, 'format' => 'png']) }}" class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 text-center">Download PNG</a>
+                <button
+                    type="button"
+                    id="download-png"
+                    class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 text-center"
+                >
+                    Download PNG
+                </button>
                 <a href="{{ $qrLink }}" target="_blank" class="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700 text-center">Buka Link</a>
             </div>
         </div>
@@ -74,14 +81,27 @@
     document.addEventListener('DOMContentLoaded', () => {
         const logoInput = document.getElementById('logo-input');
         const logoPreview = document.getElementById('logo-preview');
+        const downloadButton = document.getElementById('download-png');
+        const qrSvg = document.querySelector('#qr-svg-wrapper svg');
+
+        const initialLogo = logoPreview?.dataset.initialLogo || '';
+        if (logoPreview && initialLogo) {
+            logoPreview.src = initialLogo;
+            logoPreview.classList.remove('hidden');
+        }
 
         if (logoInput && logoPreview) {
             logoInput.addEventListener('change', (event) => {
                 const file = event.target.files?.[0];
 
                 if (!file) {
-                    logoPreview.classList.add('hidden');
-                    logoPreview.src = '';
+                    if (initialLogo) {
+                        logoPreview.src = initialLogo;
+                        logoPreview.classList.remove('hidden');
+                    } else {
+                        logoPreview.classList.add('hidden');
+                        logoPreview.src = '';
+                    }
                     return;
                 }
 
@@ -93,6 +113,91 @@
                 reader.readAsDataURL(file);
             });
         }
+
+        const drawQrToCanvas = () => new Promise((resolve) => {
+            if (!qrSvg) {
+                resolve(null);
+                return;
+            }
+
+            const serializer = new XMLSerializer();
+            const svgData = serializer.serializeToString(qrSvg);
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            const image = new Image();
+            image.crossOrigin = 'anonymous';
+
+            image.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = image.width;
+                canvas.height = image.height;
+                const ctx = canvas.getContext('2d');
+
+                if (!ctx) {
+                    URL.revokeObjectURL(url);
+                    resolve(null);
+                    return;
+                }
+
+                ctx.drawImage(image, 0, 0);
+
+                const shouldDrawLogo = logoPreview && !logoPreview.classList.contains('hidden') && logoPreview.src;
+
+                if (shouldDrawLogo) {
+                    const logoImage = new Image();
+                    logoImage.crossOrigin = 'anonymous';
+                    logoImage.onload = () => {
+                        const svgRect = qrSvg.getBoundingClientRect();
+                        const logoRect = logoPreview.getBoundingClientRect();
+                        const scaleX = canvas.width / svgRect.width;
+                        const scaleY = canvas.height / svgRect.height;
+                        const logoWidth = logoRect.width * scaleX;
+                        const logoHeight = logoRect.height * scaleY;
+                        const logoX = (canvas.width - logoWidth) / 2;
+                        const logoY = (canvas.height - logoHeight) / 2;
+
+                        ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
+                        URL.revokeObjectURL(url);
+                        resolve(canvas);
+                    };
+                    logoImage.onerror = () => {
+                        URL.revokeObjectURL(url);
+                        resolve(canvas);
+                    };
+                    logoImage.src = logoPreview.src;
+                } else {
+                    URL.revokeObjectURL(url);
+                    resolve(canvas);
+                }
+            };
+
+            image.onerror = () => {
+                URL.revokeObjectURL(url);
+                resolve(null);
+            };
+
+            image.src = url;
+        });
+
+        const downloadSvgAsPng = async () => {
+            const canvas = await drawQrToCanvas();
+            if (!canvas) return;
+
+            canvas.toBlob((blob) => {
+                if (!blob) return;
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'qr-{{ $qr->code }}.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            });
+        };
+
+        downloadButton?.addEventListener('click', downloadSvgAsPng);
     });
 </script>
 @endsection
