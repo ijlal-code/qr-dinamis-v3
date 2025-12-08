@@ -19,7 +19,7 @@
 </head>
 <body class="min-h-screen flex flex-col bg-slate-50 text-slate-800">
     <div class="bg-white shadow-sm border-b border-slate-200">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full px-4 sm:px-6 py-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-start sm:gap-6">
             <div class="flex items-center gap-2">
                 <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white font-bold">QR</div>
                 <div>
@@ -27,7 +27,7 @@
                     <p class="font-semibold">QR Dinamis</p>
                 </div>
             </div>
-            <div class="flex flex-wrap items-center gap-3 text-sm">
+            <div class="flex flex-wrap items-center gap-3 text-sm sm:ml-auto">
                 @auth
                     <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700">{{ auth()->user()->name }}</span>
                     <a href="{{ route('qr.index') }}" class="text-slate-600 hover:text-slate-900">QR</a>
@@ -72,7 +72,7 @@
     </main>
 
     <footer class="w-full bg-slate-900 text-slate-100 py-4 mt-auto">
-        <div class="max-w-6xl mx-auto px-4 text-center text-sm">
+        <div class="w-full px-4 sm:px-6 text-center text-sm">
             © {{ date('Y') }} Infinitec. All rights reserved.
         </div>
     </footer>
