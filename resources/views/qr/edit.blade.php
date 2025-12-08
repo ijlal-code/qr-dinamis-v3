@@ -198,7 +198,19 @@
                         const logoX = (canvas.width - logoWidth) / 2;
                         const logoY = (canvas.height - logoHeight) / 2;
 
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(
+                            logoX + logoWidth / 2,
+                            logoY + logoHeight / 2,
+                            Math.min(logoWidth, logoHeight) / 2,
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx.closePath();
+                        ctx.clip();
                         ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
+                        ctx.restore();
                         URL.revokeObjectURL(url);
                         resolve(canvas);
                     };
