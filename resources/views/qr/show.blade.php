@@ -59,7 +59,7 @@
                         id="logo-preview"
                         src="{{ $logoUrl }}"
                         alt="Logo QR"
-                        class="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full object-contain bg-white/80"
+                        class="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover bg-white/80"
                     >
                 @endif
             </div>

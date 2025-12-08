@@ -7,6 +7,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use QrCode;
 
 class DynamicQrController extends Controller
@@ -33,7 +34,12 @@ class DynamicQrController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('dynamic_qrs')->where('user_id', $request->user()->id),
+            ],
             'target_url' => 'required|url',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
         ]);
@@ -73,7 +79,14 @@ class DynamicQrController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('dynamic_qrs')
+                    ->ignore($id)
+                    ->where('user_id', $request->user()->id),
+            ],
             'target_url' => 'sometimes|required|url',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
             'remove_logo' => 'nullable|boolean',
