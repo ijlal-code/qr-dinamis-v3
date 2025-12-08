@@ -40,6 +40,10 @@
                     <label class="block text-sm font-medium text-slate-700 mb-2">Logo (opsional)</label>
                     <input type="file" name="logo" id="logo-input" accept="image/*" class="w-full rounded-lg border border-slate-200 px-4 py-2 bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
                     @if($qr->logo_path)
+                        <label class="mt-2 flex items-center gap-2 text-sm text-slate-600">
+                            <input type="checkbox" name="remove_logo" id="remove-logo" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                            <span>Hapus Logo Saat Ini</span>
+                        </label>
                         <p class="mt-2 text-xs text-slate-500 break-all">Logo saat ini: {{ $qr->logo_path }}</p>
                     @endif
                 </div>
@@ -81,36 +85,73 @@
     document.addEventListener('DOMContentLoaded', () => {
         const logoInput = document.getElementById('logo-input');
         const logoPreview = document.getElementById('logo-preview');
+        const removeLogoCheckbox = document.getElementById('remove-logo');
         const downloadButton = document.getElementById('download-png');
         const qrSvg = document.querySelector('#qr-svg-wrapper svg');
 
         const initialLogo = logoPreview?.dataset.initialLogo || '';
-        if (logoPreview && initialLogo) {
-            logoPreview.src = initialLogo;
-            logoPreview.classList.remove('hidden');
-        }
+
+        const setLogoVisibility = (src) => {
+            if (!logoPreview) return;
+
+            if (src) {
+                logoPreview.src = src;
+                logoPreview.classList.remove('hidden');
+            } else {
+                logoPreview.src = '';
+                logoPreview.classList.add('hidden');
+            }
+        };
+
+        const renderInitialLogo = () => {
+            if (initialLogo && !removeLogoCheckbox?.checked) {
+                setLogoVisibility(initialLogo);
+            } else {
+                setLogoVisibility('');
+            }
+        };
+
+        const renderSelectedFile = (file) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const result = e.target?.result?.toString() || '';
+                setLogoVisibility(result);
+            };
+            reader.readAsDataURL(file);
+        };
+
+        renderInitialLogo();
 
         if (logoInput && logoPreview) {
             logoInput.addEventListener('change', (event) => {
                 const file = event.target.files?.[0];
 
                 if (!file) {
-                    if (initialLogo) {
-                        logoPreview.src = initialLogo;
-                        logoPreview.classList.remove('hidden');
-                    } else {
-                        logoPreview.classList.add('hidden');
-                        logoPreview.src = '';
-                    }
+                    renderInitialLogo();
                     return;
                 }
 
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    logoPreview.src = e.target?.result || '';
-                    logoPreview.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
+                if (removeLogoCheckbox) {
+                    removeLogoCheckbox.checked = false;
+                }
+
+                renderSelectedFile(file);
+            });
+        }
+
+        if (removeLogoCheckbox) {
+            removeLogoCheckbox.addEventListener('change', () => {
+                if (removeLogoCheckbox.checked) {
+                    setLogoVisibility('');
+                    return;
+                }
+
+                const file = logoInput?.files?.[0];
+                if (file) {
+                    renderSelectedFile(file);
+                } else {
+                    renderInitialLogo();
+                }
             });
         }
 
