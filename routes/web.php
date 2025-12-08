@@ -27,10 +27,11 @@ Route::middleware('auth')->group(function () {
 
 // Admin dashboard & manajemen user
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
-    Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
-    Route::patch('/users/{user}/role', [AdminController::class, 'updateRole'])->name('users.role');
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/users', [AdminController::class, 'index'])->name('users.index');
+    Route::get('/users/{user}', [AdminController::class, 'show'])->name('users.show');
     Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
+    Route::delete('/qrs/{qr}', [AdminController::class, 'destroyQr'])->name('qrs.destroy');
 });
 
 // Route untuk redirect QR

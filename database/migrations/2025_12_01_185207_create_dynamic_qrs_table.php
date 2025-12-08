@@ -9,16 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up()
-{
-    Schema::create('dynamic_qrs', function (Blueprint $table) {
-        $table->id();
-        $table->string('code')->unique(); // kode unik yang dipakai di QR
-        $table->text('target_url');       // link tujuan yang bisa diubah
-        $table->timestamps();
-    });
-}
-
+    public function up(): void
+    {
+        Schema::create('dynamic_qrs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
+            $table->string('code')->unique();
+            $table->text('target_url');
+            $table->integer('scans_count')->default(0);
+            $table->string('logo_path')->nullable();
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DynamicQr extends Model
 {
-    protected $fillable = ['code', 'name', 'target_url', 'user_id'];
+    protected $fillable = ['code', 'name', 'target_url', 'user_id', 'scans_count', 'logo_path'];
 
     public function user(): BelongsTo
     {
