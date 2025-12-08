@@ -64,7 +64,7 @@
                     src="{{ $logoUrl }}"
                     data-initial-logo="{{ $logoUrl }}"
                     alt="Preview Logo"
-                    class="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full object-contain bg-white/80 {{ $logoUrl ? '' : 'hidden' }}"
+                    class="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover bg-white/80 {{ $logoUrl ? '' : 'hidden' }}"
                 >
             </div>
             <div class="mt-4 w-full flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3">

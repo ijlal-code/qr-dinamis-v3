@@ -13,16 +13,34 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-slate-700 mb-2">Password</label>
-            <input type="password" name="password" required class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
+            <div class="relative">
+                <input type="password" name="password" id="login-password" required class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 pr-14">
+                <button type="button" data-target="login-password" class="absolute inset-y-0 right-3 my-auto text-sm text-slate-600 hover:text-slate-800" aria-label="Tampilkan atau sembunyikan sandi">Tampilkan</button>
+            </div>
         </div>
-        <div class="flex items-center justify-between text-sm">
-            <label class="flex items-center gap-2 text-slate-600">
-                <input type="checkbox" name="remember" class="rounded border-slate-300 text-indigo-600">
-                Ingat saya
-            </label>
+        <div class="flex items-center justify-end text-sm">
             <a href="{{ route('register') }}" class="text-indigo-600 hover:text-indigo-500">Buat akun</a>
         </div>
         <button class="w-full px-4 py-3 rounded-lg bg-slate-900 text-white hover:bg-slate-700">Masuk</button>
     </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleButtons = document.querySelectorAll('button[data-target]');
+
+        toggleButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const targetId = button.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+
+                if (!input) return;
+
+                const isHidden = input.type === 'password';
+                input.type = isHidden ? 'text' : 'password';
+                button.textContent = isHidden ? 'Sembunyikan' : 'Tampilkan';
+            });
+        });
+    });
+</script>
 @endsection
