@@ -24,7 +24,7 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nama</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Role</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Jumlah QR</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Aksi</th>
                 </tr>
             </thead>
@@ -35,9 +35,7 @@
                             <p class="font-semibold text-slate-900">{{ $user->name }}</p>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{{ $user->email }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-3 py-1 rounded-full text-xs font-medium {{ $user->is_admin ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700' }}">{{ $user->is_admin ? 'Admin' : 'User' }}</span>
-                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{{ $user->dynamic_qrs_count }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                             <div class="flex items-center justify-end gap-2">
                                 <a href="{{ route('admin.users.show', $user) }}" class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500">Detail</a>

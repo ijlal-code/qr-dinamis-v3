@@ -35,6 +35,7 @@ class AdminController extends Controller
                         ->orWhere('email', 'like', "%{$search}%");
                 });
             })
+            ->withCount('dynamicQrs')
             ->orderByDesc('is_admin')
             ->orderBy('name')
             ->paginate(10)

@@ -6,7 +6,7 @@
         <p class="text-sm text-slate-500">Ringkasan kendali</p>
         <h1 class="text-2xl font-semibold text-slate-900">Dashboard Admin</h1>
     </div>
-    <a href="{{ route('qr.create') }}" class="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700">Buat QR</a>
+    <a href="{{ route('admin.users.index') }}" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:border-slate-300">Kelola Pengguna</a>
 </div>
 
 <div class="grid gap-4 md:grid-cols-3 mb-8">
@@ -53,25 +53,10 @@
                 <p class="text-sm text-slate-500">Kelola akses</p>
                 <h2 class="text-lg font-semibold text-slate-900">Pengguna</h2>
             </div>
+            <a href="{{ route('admin.users.index') }}" class="text-indigo-600 hover:text-indigo-500 text-sm">Lihat semua</a>
         </div>
         <div class="p-6 space-y-4">
-            <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-3">
-                @csrf
-                <div class="grid gap-3 md:grid-cols-2">
-                    <input name="name" placeholder="Nama" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200" required>
-                    <input type="email" name="email" placeholder="Email" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200" required>
-                </div>
-                <div class="grid gap-3 md:grid-cols-2">
-                    <input type="password" name="password" placeholder="Password" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200" required>
-                    <select name="role" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-                <div class="flex justify-end">
-                    <button class="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700">Tambah Pengguna</button>
-                </div>
-            </form>
+            <p class="text-sm text-slate-600">Admin tidak membuat pengguna secara manual. Gunakan halaman pengguna untuk melihat detail dan menghapus akun bila diperlukan.</p>
 
             <div class="divide-y divide-slate-200">
                 @foreach($users as $user)
@@ -80,22 +65,7 @@
                             <p class="font-semibold text-slate-900">{{ $user->name }}</p>
                             <p class="text-sm text-slate-600">{{ $user->email }}</p>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <form action="{{ route('admin.users.role', $user) }}" method="POST" class="flex items-center gap-2">
-                                @csrf
-                                @method('PATCH')
-                                <select name="role" class="rounded-lg border border-slate-200 px-3 py-2 text-sm">
-                                    <option value="user" @selected(!$user->is_admin)>User</option>
-                                    <option value="admin" @selected($user->is_admin)>Admin</option>
-                                </select>
-                                <button class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 text-sm">Simpan</button>
-                            </form>
-                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" onsubmit="return confirm('Hapus pengguna ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="px-3 py-2 rounded-lg bg-rose-500 text-white hover:bg-rose-600 text-sm">Hapus</button>
-                            </form>
-                        </div>
+                        <a href="{{ route('admin.users.show', $user) }}" class="px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700 text-sm">Detail</a>
                     </div>
                 @endforeach
             </div>

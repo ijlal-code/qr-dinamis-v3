@@ -32,6 +32,12 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
+        $user = Auth::user();
+
+        if ($user && $user->is_admin) {
+            return redirect()->intended(route('admin.users.index'));
+        }
+
         return redirect()->intended(route('qr.index'));
     }
 

@@ -94,7 +94,7 @@ class DynamicQrController extends Controller
             'logo_path'  => $logoPath,
         ]);
 
-        return redirect()->route('qr.show', $qr->id)->with('success', 'Link berhasil diperbarui!');
+        return redirect()->back()->with('success', 'Data berhasil diperbarui');
     }
 
     // Hapus QR
